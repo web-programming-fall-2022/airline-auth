@@ -1,0 +1,19 @@
+env: dev
+
+log:
+  level: debug
+
+server:
+  port: 50051
+  host: 0.0.0.0
+
+httpServer:
+  port: 8080
+
+prometheus:
+  enabled: true
+  host: 0.0.0.0
+  port: 8000
+
+redis:
+  addr: localhost:6379
