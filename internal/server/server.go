@@ -10,10 +10,10 @@ import (
 
 type AuthServiceServer struct {
 	pb.UnimplementedAuthServiceServer
-	TokenManager *token.Manager
+	TokenManager token.Manager
 }
 
-func NewAuthServiceServer(tokenManager *token.Manager) *AuthServiceServer {
+func NewAuthServiceServer(tokenManager token.Manager) *AuthServiceServer {
 	return &AuthServiceServer{
 		TokenManager: tokenManager,
 	}

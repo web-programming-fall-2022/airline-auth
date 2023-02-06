@@ -13,6 +13,10 @@ type Config struct {
 
 	bootstrap.GrpcServerRunnerConfig `mapstructure:",squash" yaml:",inline"`
 
+	JWT struct {
+		Secret string
+	}
+
 	HttpServer struct {
 		Port int
 	}

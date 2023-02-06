@@ -6,5 +6,5 @@ import (
 
 type Manager interface {
 	Generate(claims map[string]string, expiration time.Time) (string, error)
-	Validate(token string) (map[string]string, error)
+	Validate(tokenString string) (map[string]string, error)
 }

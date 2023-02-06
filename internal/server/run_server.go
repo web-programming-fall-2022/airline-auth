@@ -29,7 +29,9 @@ func RunServer(ctx context.Context, config cfg.Config) job.WithGracefulShutdown 
 	//	DB:       0,  // use default DB
 	//})
 
-	registerServer(grpcServer)
+	tokenManager := token.NewJWTManager(config.JWT.Secret)
+
+	registerServer(grpcServer, tokenManager)
 
 	go func() {
 		logrus.Infoln("Starting grpc server...")
