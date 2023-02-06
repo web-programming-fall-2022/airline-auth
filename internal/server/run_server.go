@@ -8,6 +8,7 @@ import (
 	"github.com/web-programming-fall-2022/airline-auth/internal/bootstrap"
 	"github.com/web-programming-fall-2022/airline-auth/internal/bootstrap/job"
 	"github.com/web-programming-fall-2022/airline-auth/internal/cfg"
+	"github.com/web-programming-fall-2022/airline-auth/internal/token"
 	pb "github.com/web-programming-fall-2022/airline-auth/pkg/api/v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -39,8 +40,8 @@ func RunServer(ctx context.Context, config cfg.Config) job.WithGracefulShutdown 
 	return serverRunner
 }
 
-func registerServer(server *grpc.Server) {
-	pb.RegisterAuthServiceServer(server, NewAuthServiceServer())
+func registerServer(server *grpc.Server, tokenManager token.Manager) {
+	pb.RegisterAuthServiceServer(server, NewAuthServiceServer(tokenManager))
 }
 
 func RunHttpServer(ctx context.Context, config cfg.Config) job.WithGracefulShutdown {
