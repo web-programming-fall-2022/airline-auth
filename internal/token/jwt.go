@@ -1,20 +1,26 @@
 package token
 
 import (
+	"context"
 	"errors"
 	"github.com/golang-jwt/jwt/v4"
+	"github.com/redis/go-redis/v9"
 	"github.com/web-programming-fall-2022/airline-auth/internal/storage"
+	"strconv"
 	"time"
 )
 
 type JWTManager struct {
 	secret  string
-	storage *storage.Storage
+	Storage *storage.Storage
+	RDB     *redis.Client
 }
 
-func NewJWTManager(secret string) *JWTManager {
+func NewJWTManager(secret string, store *storage.Storage, rdb *redis.Client) *JWTManager {
 	return &JWTManager{
-		secret: secret,
+		secret:  secret,
+		Storage: store,
+		RDB:     rdb,
 	}
 }
 
@@ -27,15 +33,15 @@ func (m *JWTManager) Generate(claims map[string]string, expiration time.Time) (s
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, mapClaims)
 
-	tokenString, err := token.SignedString(m.secret)
+	tokenString, err := token.SignedString([]byte(m.secret))
 	if err != nil {
 		return "", err
 	}
 	return tokenString, nil
 }
 
-func (m *JWTManager) Validate(tokenString string) (map[string]string, error) {
-	err := m.CheckUnauthorizedToken(tokenString)
+func (m *JWTManager) Validate(ctx context.Context, tokenString string) (map[string]string, error) {
+	err := m.CheckUnauthorizedToken(ctx, tokenString)
 	if err != nil {
 		return nil, err
 	}
@@ -59,7 +65,7 @@ func (m *JWTManager) Validate(tokenString string) (map[string]string, error) {
 	return result, nil
 }
 
-func (m *JWTManager) InvalidateToken(tokenString string) error {
+func (m *JWTManager) InvalidateToken(ctx context.Context, tokenString string) error {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		return m.secret, nil
 	})
@@ -73,25 +79,23 @@ func (m *JWTManager) InvalidateToken(tokenString string) error {
 	if !ok {
 		return errors.New("invalid token")
 	}
-	user, err := m.storage.GetUserByID(claims["userId"].(uint))
-	if err != nil {
-		return errors.New("could not find user")
-	}
-	err = m.storage.CreateUnauthorizedToken(&storage.UnauthorizedToken{
-		User:       *user,
+	userId, _ := strconv.Atoi(claims["user_id"].(string))
+	err = m.Storage.CreateUnauthorizedToken(&storage.UnauthorizedToken{
+		UserID:     uint(userId),
 		Token:      tokenString,
 		Expiration: claims["exp"].(time.Time),
 	})
+	m.RDB.SetEx(ctx, tokenString, "true", time.Until(claims["exp"].(time.Time)))
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (m *JWTManager) CheckUnauthorizedToken(tokenString string) error {
-	unauthorizedToken, _ := m.storage.GetUnauthorizedToken(tokenString)
-	if unauthorizedToken != nil {
-		return errors.New("unauthorized token")
+func (m *JWTManager) CheckUnauthorizedToken(ctx context.Context, tokenString string) error {
+	resp := m.RDB.Get(ctx, tokenString)
+	if resp.Err() != nil {
+		return nil
 	}
-	return nil
+	return errors.New("token is unauthorized")
 }

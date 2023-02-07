@@ -8,6 +8,7 @@ import (
 
 type UnauthorizedToken struct {
 	gorm.Model
+	UserID     uint
 	User       AuthUser
 	Token      string
 	Expiration time.Time
@@ -34,4 +35,12 @@ func (storage *Storage) DeleteUnauthorizedTokensBeforeNow() error {
 		return errors.New("couldn't delete unauthorized tokens in postgres storage")
 	}
 	return nil
+}
+
+func (storage *Storage) GetAllUnauthorizedTokens() ([]*UnauthorizedToken, error) {
+	unauthorizedTokens := make([]*UnauthorizedToken, 0)
+	if err := storage.DB.Find(&unauthorizedTokens).Error; err != nil {
+		return nil, errors.New("couldn't get all unauthorized tokens in postgres storage")
+	}
+	return unauthorizedTokens, nil
 }

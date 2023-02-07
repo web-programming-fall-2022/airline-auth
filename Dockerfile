@@ -15,10 +15,9 @@ RUN chmod +x aauth
 
 
 FROM alpine:3.14.2
-
+RUN sed -i 's|dl-cdn.alpinelinux.org|repos.balad.ir/artifactory|g' /etc/apk/repositories
 RUN apk update && apk add bash
-
-COPY --from=builder /app/dvs /app/dvs
+COPY --from=builder /app/aauth /app/aauth
 COPY --from=builder /bin/grpc_health_probe /bin/grpc_health_probe
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 WORKDIR /app

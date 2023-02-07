@@ -14,12 +14,12 @@ type Config struct {
 
 	bootstrap.GrpcServerRunnerConfig `mapstructure:",squash" yaml:",inline"`
 
-	MainDB storage.DBConfig `mapstructure:"main_db"`
+	MainDB storage.DBConfig `mapstructure:"main_db" yaml:"main_db"`
 
 	JWT struct {
 		Secret             string
-		AuthTokenExpire    int64 `mapstructure:"auth_token_expire"`
-		RefreshTokenExpire int64 `mapstructure:"refresh_token_expire"`
+		AuthTokenExpire    int64 `mapstructure:"auth_token_expire" yaml:"auth_token_expire"`
+		RefreshTokenExpire int64 `mapstructure:"refresh_token_expire" yaml:"refresh_token_expire"`
 	}
 
 	HttpServer struct {

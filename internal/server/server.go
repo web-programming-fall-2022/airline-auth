@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"errors"
+	"github.com/sirupsen/logrus"
 	"github.com/web-programming-fall-2022/airline-auth/internal/storage"
 	"github.com/web-programming-fall-2022/airline-auth/internal/token"
 	pb "github.com/web-programming-fall-2022/airline-auth/pkg/api/v1"
@@ -72,6 +73,7 @@ func (s *AuthServiceServer) Register(ctx context.Context, req *pb.RegisterReques
 	}
 	authToken, refreshToken, err := s.generateTokens(&user)
 	if err != nil {
+		logrus.Errorln(err)
 		return nil, errors.New("could not generate tokens")
 	}
 	return &pb.RegisterResponse{
@@ -81,7 +83,7 @@ func (s *AuthServiceServer) Register(ctx context.Context, req *pb.RegisterReques
 }
 
 func (s *AuthServiceServer) RefreshToken(ctx context.Context, req *pb.RefreshTokenRequest) (*pb.RefreshTokenResponse, error) {
-	claims, err := s.TokenManager.Validate(req.RefreshToken)
+	claims, err := s.TokenManager.Validate(ctx, req.RefreshToken)
 	if err != nil {
 		return nil, errors.New("invalid token")
 	}
@@ -100,7 +102,7 @@ func (s *AuthServiceServer) RefreshToken(ctx context.Context, req *pb.RefreshTok
 }
 
 func (s *AuthServiceServer) UserInfo(ctx context.Context, req *pb.UserInfoRequest) (*pb.UserInfoResponse, error) {
-	claims, err := s.TokenManager.Validate(req.AuthToken)
+	claims, err := s.TokenManager.Validate(ctx, req.AuthToken)
 	if err != nil {
 		return nil, errors.New("invalid token")
 	}
@@ -126,11 +128,11 @@ func (s *AuthServiceServer) UserInfo(ctx context.Context, req *pb.UserInfoReques
 }
 
 func (s *AuthServiceServer) Logout(ctx context.Context, req *pb.LogoutRequest) (*emptypb.Empty, error) {
-	err := s.TokenManager.InvalidateToken(req.AuthToken)
+	err := s.TokenManager.InvalidateToken(ctx, req.AuthToken)
 	if err != nil {
 		return nil, errors.New("could not invalidate auth token")
 	}
-	err = s.TokenManager.InvalidateToken(req.RefreshToken)
+	err = s.TokenManager.InvalidateToken(ctx, req.RefreshToken)
 	if err != nil {
 		return nil, errors.New("could not invalidate refresh token")
 	}

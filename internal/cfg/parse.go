@@ -17,6 +17,7 @@ func ParseDevConfig() Config {
 
 // ParseConfig parses config file specified by path into config struct and validates it.
 func ParseConfig(path string) Config {
+	logrus.Info("Parsing config file: ", path)
 	config := Config{}
 	err := cfg_utils.UnmarshalConfig("AAUTH", path, &config)
 	if err != nil {

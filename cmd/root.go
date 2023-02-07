@@ -4,9 +4,9 @@ import "github.com/spf13/cobra"
 
 func New() *cobra.Command {
 	root := &cobra.Command{
-		Use:   "dvs <subcommand>",
-		Short: "dvs Daemon",
-		Long:  `dvs is a gRPC microservice. More info at https://github.com/web-programming-fall-2022/airline-auth`,
+		Use:   "aauth <subcommand>",
+		Short: "aauth Daemon",
+		Long:  `aauth is a gRPC microservice. More info at https://github.com/web-programming-fall-2022/airline-auth`,
 		Run:   nil,
 	}
 	addServeCmd(root)

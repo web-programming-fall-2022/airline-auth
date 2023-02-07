@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/redis/go-redis/v9"
 	"github.com/sirupsen/logrus"
 	"github.com/web-programming-fall-2022/airline-auth/internal/bootstrap"
 	"github.com/web-programming-fall-2022/airline-auth/internal/bootstrap/job"
@@ -25,11 +26,11 @@ func RunServer(ctx context.Context, config cfg.Config) job.WithGracefulShutdown 
 	// Create the gRPC server
 	grpcServer := serverRunner.GetGrpcServer()
 
-	//rdb := redis.NewClient(&redis.Options{
-	//	Addr:     config.Redis.Addr,
-	//	Password: "", // no password set
-	//	DB:       0,  // use default DB
-	//})
+	rdb := redis.NewClient(&redis.Options{
+		Addr:     config.Redis.Addr,
+		Password: "", // no password set
+		DB:       0,  // use default DB
+	})
 
 	store := storage.NewStorage(&config.MainDB)
 
@@ -37,7 +38,7 @@ func RunServer(ctx context.Context, config cfg.Config) job.WithGracefulShutdown 
 		log.Fatal(err)
 	}
 
-	tokenManager := token.NewJWTManager(config.JWT.Secret)
+	tokenManager := token.NewJWTManager(config.JWT.Secret, store, rdb)
 
 	registerServer(
 		grpcServer,

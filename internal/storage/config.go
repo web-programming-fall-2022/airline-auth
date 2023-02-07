@@ -11,7 +11,7 @@ type DBConfig struct {
 	Port     int    `mapstructure:"port"`
 	Username string `mapstructure:"username"`
 	Password string `mapstructure:"password"`
-	DBName   string `mapstructure:"db_name"`
+	DBName   string `mapstructure:"db_name" yaml:"db_name"`
 }
 
 func (config *DBConfig) GetDSN() string {
