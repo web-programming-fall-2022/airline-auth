@@ -42,10 +42,7 @@ func NewStorage(masterConfig *DBConfig, replicaConfigs ...*DBConfig) *Storage {
 }
 
 func (storage *Storage) Migrate() error {
-	if err := storage.DB.AutoMigrate(&AuthUser{}); err != nil {
-		return err
-	}
-	if err := storage.DB.AutoMigrate(&UnauthorizedToken{}); err != nil {
+	if err := storage.DB.AutoMigrate(&UserAccount{}, &UnauthorizedToken{}); err != nil {
 		return err
 	}
 	return nil

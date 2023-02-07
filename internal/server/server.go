@@ -59,7 +59,7 @@ func (s *AuthServiceServer) Register(ctx context.Context, req *pb.RegisterReques
 	if err != nil {
 		return nil, err
 	}
-	user := storage.AuthUser{
+	user := storage.UserAccount{
 		Email:        req.Email,
 		PhoneNumber:  req.PhoneNumber,
 		Gender:       req.Gender,
@@ -155,6 +155,6 @@ func (s *AuthServiceServer) generateTokensWithID(userId string) (string, string,
 	return authToken, refreshToken, nil
 }
 
-func (s *AuthServiceServer) generateTokens(user *storage.AuthUser) (string, string, error) {
+func (s *AuthServiceServer) generateTokens(user *storage.UserAccount) (string, string, error) {
 	return s.generateTokensWithID(strconv.Itoa(int(user.ID)))
 }

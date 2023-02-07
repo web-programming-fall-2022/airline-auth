@@ -5,25 +5,25 @@ import (
 	"gorm.io/gorm"
 )
 
-type AuthUser struct {
+type UserAccount struct {
 	gorm.Model
-	Email        string `gorm:"index_unique"`
-	PhoneNumber  string
-	Gender       string
+	Email        string `gorm:"uniqueIndex"`
+	PhoneNumber  string `gorm:"uniqueIndex"`
+	Gender       string `gorm:"type:VARCHAR(1)"`
 	FirstName    string
 	LastName     string
 	PasswordHash string
 }
 
-func (storage *Storage) CreateUser(user *AuthUser) error {
+func (storage *Storage) CreateUser(user *UserAccount) error {
 	if err := storage.DB.Create(user).Error; err != nil {
 		return errors.New("couldn't create user in postgres storage")
 	}
 	return nil
 }
 
-func (storage *Storage) GetUserByID(id uint) (*AuthUser, error) {
-	user := AuthUser{}
+func (storage *Storage) GetUserByID(id uint) (*UserAccount, error) {
+	user := UserAccount{}
 	storage.DB.First(&user, id)
 	if user.ID == 0 {
 		return nil, errors.New("user not found")
@@ -31,8 +31,8 @@ func (storage *Storage) GetUserByID(id uint) (*AuthUser, error) {
 	return &user, nil
 }
 
-func (storage *Storage) GetUserByEmail(email string) (*AuthUser, error) {
-	user := AuthUser{Email: email}
+func (storage *Storage) GetUserByEmail(email string) (*UserAccount, error) {
+	user := UserAccount{Email: email}
 	storage.DB.Where(&user).First(&user)
 	if user.ID == 0 {
 		return nil, errors.New("user not found")

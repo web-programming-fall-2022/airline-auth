@@ -9,9 +9,9 @@ import (
 type UnauthorizedToken struct {
 	gorm.Model
 	UserID     uint
-	User       AuthUser
+	User       UserAccount `gorm:"ONDELETE:CASCADE"`
 	Token      string
-	Expiration time.Time
+	Expiration time.Time `gorm:"index"`
 }
 
 func (storage *Storage) CreateUnauthorizedToken(token *UnauthorizedToken) error {
