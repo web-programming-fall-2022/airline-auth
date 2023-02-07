@@ -3,6 +3,7 @@ package cfg
 import (
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/web-programming-fall-2022/airline-auth/internal/bootstrap"
+	"github.com/web-programming-fall-2022/airline-auth/internal/storage"
 )
 
 type Config struct {
@@ -13,8 +14,12 @@ type Config struct {
 
 	bootstrap.GrpcServerRunnerConfig `mapstructure:",squash" yaml:",inline"`
 
+	MainDB storage.DBConfig `mapstructure:"main_db"`
+
 	JWT struct {
-		Secret string
+		Secret             string
+		AuthTokenExpire    int64 `mapstructure:"auth_token_expire"`
+		RefreshTokenExpire int64 `mapstructure:"refresh_token_expire"`
 	}
 
 	HttpServer struct {

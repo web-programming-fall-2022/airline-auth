@@ -8,10 +8,12 @@ import (
 	"github.com/web-programming-fall-2022/airline-auth/internal/bootstrap"
 	"github.com/web-programming-fall-2022/airline-auth/internal/bootstrap/job"
 	"github.com/web-programming-fall-2022/airline-auth/internal/cfg"
+	"github.com/web-programming-fall-2022/airline-auth/internal/storage"
 	"github.com/web-programming-fall-2022/airline-auth/internal/token"
 	pb "github.com/web-programming-fall-2022/airline-auth/pkg/api/v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"log"
 	"net/http"
 )
 
@@ -29,11 +31,24 @@ func RunServer(ctx context.Context, config cfg.Config) job.WithGracefulShutdown 
 	//	DB:       0,  // use default DB
 	//})
 
+	store := storage.NewStorage(&config.MainDB)
+
+	if err := store.Migrate(); err != nil {
+		log.Fatal(err)
+	}
+
 	tokenManager := token.NewJWTManager(config.JWT.Secret)
 
-	registerServer(grpcServer, tokenManager)
+	registerServer(
+		grpcServer,
+		tokenManager,
+		store,
+		config.JWT.AuthTokenExpire,
+		config.JWT.RefreshTokenExpire,
+	)
 
 	go func() {
+		defer store.Close()
 		logrus.Infoln("Starting grpc server...")
 		if err := serverRunner.Run(ctx); err != nil {
 			logrus.Fatal(err.Error())
@@ -42,8 +57,19 @@ func RunServer(ctx context.Context, config cfg.Config) job.WithGracefulShutdown 
 	return serverRunner
 }
 
-func registerServer(server *grpc.Server, tokenManager token.Manager) {
-	pb.RegisterAuthServiceServer(server, NewAuthServiceServer(tokenManager))
+func registerServer(
+	server *grpc.Server,
+	tokenManager token.Manager,
+	storage *storage.Storage,
+	authTokenExpire int64,
+	refreshTokenExpire int64,
+) {
+	pb.RegisterAuthServiceServer(server, NewAuthServiceServer(
+		tokenManager,
+		storage,
+		authTokenExpire,
+		refreshTokenExpire,
+	))
 }
 
 func RunHttpServer(ctx context.Context, config cfg.Config) job.WithGracefulShutdown {
