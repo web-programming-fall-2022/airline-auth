@@ -85,31 +85,31 @@ option (grpc.gateway.protoc_gen_swagger.options.openapiv2_swagger) = {
 service AuthService {
   rpc Login(LoginRequest) returns (LoginResponse) {
     option (google.api.http) = {
-      post: "/api/v1/login"
+      post: "/api/v1/auth/login"
       body: "*"
     };
   }
   rpc RefreshToken(RefreshTokenRequest) returns (RefreshTokenResponse) {
     option (google.api.http) = {
-      post: "/api/v1/refresh"
+      post: "/api/v1/auth/refresh"
       body: "*"
     };
   }
   rpc Logout(LogoutRequest) returns (google.protobuf.Empty) {
     option (google.api.http) = {
-      post: "/api/v1/logout"
+      post: "/api/v1/auth/logout"
       body: "*"
     };
   }
   rpc Register(RegisterRequest) returns (RegisterResponse) {
     option (google.api.http) = {
-      post: "/api/v1/register"
+      post: "/api/v1/auth/register"
       body: "*"
     };
   }
   rpc UserInfo(UserInfoRequest) returns (UserInfoResponse) {
     option (google.api.http) = {
-      post: "/api/v1/userinfo"
+      post: "/api/v1/auth/userinfo"
       body: "*"
     };
   }
