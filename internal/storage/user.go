@@ -7,8 +7,8 @@ import (
 
 type UserAccount struct {
 	gorm.Model
-	Email        string `gorm:"uniqueIndex"`
-	PhoneNumber  string `gorm:"uniqueIndex"`
+	Email        string `gorm:"uniqueIndex:idx_email"`
+	PhoneNumber  string `gorm:"uniqueIndex:idx_phone_number"`
 	Gender       string `gorm:"type:VARCHAR(1)"`
 	FirstName    string
 	LastName     string

@@ -8,6 +8,8 @@ import (
 	"github.com/web-programming-fall-2022/airline-auth/internal/token"
 	pb "github.com/web-programming-fall-2022/airline-auth/pkg/api/v1"
 	"golang.org/x/crypto/bcrypt"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"strconv"
 	"time"
@@ -55,6 +57,10 @@ func (s *AuthServiceServer) Login(ctx context.Context, req *pb.LoginRequest) (*p
 }
 
 func (s *AuthServiceServer) Register(ctx context.Context, req *pb.RegisterRequest) (*pb.RegisterResponse, error) {
+	err := req.Validate()
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
 	hash, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return nil, err
@@ -87,7 +93,7 @@ func (s *AuthServiceServer) RefreshToken(ctx context.Context, req *pb.RefreshTok
 	if err != nil {
 		return nil, errors.New("invalid token")
 	}
-	userId, ok := claims["userId"]
+	userId, ok := claims["userID"]
 	if !ok {
 		return nil, errors.New("no userId in token")
 	}
@@ -104,9 +110,10 @@ func (s *AuthServiceServer) RefreshToken(ctx context.Context, req *pb.RefreshTok
 func (s *AuthServiceServer) UserInfo(ctx context.Context, req *pb.UserInfoRequest) (*pb.UserInfoResponse, error) {
 	claims, err := s.TokenManager.Validate(ctx, req.AuthToken)
 	if err != nil {
+		logrus.Errorln(err)
 		return nil, errors.New("invalid token")
 	}
-	userId, ok := claims["userId"]
+	userId, ok := claims["userID"]
 	if !ok {
 		return nil, errors.New("no userId in token")
 	}

@@ -15,6 +15,7 @@ import (
 	pb "github.com/web-programming-fall-2022/airline-auth/pkg/api/v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"log"
 	"net/http"
 	"regexp"
 )
@@ -35,9 +36,9 @@ func RunServer(ctx context.Context, config cfg.Config) job.WithGracefulShutdown 
 
 	store := storage.NewStorage(&config.MainDB)
 
-	//if err := store.Migrate(); err != nil {
-	//	log.Fatal(err)
-	//}
+	if err := store.Migrate(); err != nil {
+		log.Fatal(err)
+	}
 
 	tokenManager := token.NewJWTManager(config.JWT.Secret, store, rdb)
 

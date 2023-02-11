@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"github.com/pkg/errors"
 	pg "gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/plugin/dbresolver"
@@ -42,8 +43,11 @@ func NewStorage(masterConfig *DBConfig, replicaConfigs ...*DBConfig) *Storage {
 }
 
 func (storage *Storage) Migrate() error {
-	if err := storage.DB.AutoMigrate(&UserAccount{}, &UnauthorizedToken{}); err != nil {
-		return err
+	if err := storage.DB.AutoMigrate(&UserAccount{}); err != nil {
+		return errors.Wrap(err, "failed to migrate UserAccount")
+	}
+	if err := storage.DB.AutoMigrate(&UnauthorizedToken{}); err != nil {
+		return errors.Wrap(err, "failed to migrate UnauthorizedToken")
 	}
 	return nil
 }

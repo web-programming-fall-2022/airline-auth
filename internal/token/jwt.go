@@ -11,14 +11,14 @@ import (
 )
 
 type JWTManager struct {
-	secret  string
+	secret  []byte
 	Storage *storage.Storage
 	RDB     *redis.Client
 }
 
 func NewJWTManager(secret string, store *storage.Storage, rdb *redis.Client) *JWTManager {
 	return &JWTManager{
-		secret:  secret,
+		secret:  []byte(secret),
 		Storage: store,
 		RDB:     rdb,
 	}
@@ -33,7 +33,7 @@ func (m *JWTManager) Generate(claims map[string]string, expiration time.Time) (s
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, mapClaims)
 
-	tokenString, err := token.SignedString([]byte(m.secret))
+	tokenString, err := token.SignedString(m.secret)
 	if err != nil {
 		return "", err
 	}
@@ -60,7 +60,9 @@ func (m *JWTManager) Validate(ctx context.Context, tokenString string) (map[stri
 	}
 	result := make(map[string]string)
 	for key, value := range claims {
-		result[key] = value.(string)
+		if val, ok := value.(string); ok {
+			result[key] = val
+		}
 	}
 	return result, nil
 }

@@ -6,6 +6,7 @@ package v1;
 import "google/api/annotations.proto";
 import "protoc-gen-swagger/options/annotations.proto";
 import "google/protobuf/empty.proto";
+import "github.com/mwitkow/go-proto-validators/validator.proto";
 
 message LoginRequest {
     string email = 1;
@@ -32,7 +33,7 @@ message LogoutRequest {
 }
 
 message RegisterRequest {
-  string email = 1;
+  string email = 1 [(validator.field) = {regex: "^^[A-Za-z0-9+_.-]+@(.+)$$"}];
   string phone_number = 2;
   string gender = 3;
   string first_name = 4;
