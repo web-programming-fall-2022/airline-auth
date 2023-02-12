@@ -33,12 +33,12 @@ message LogoutRequest {
 }
 
 message RegisterRequest {
-  string email = 1 [(validator.field) = {regex: "^^[A-Za-z0-9+_.-]+@(.+)$$"}];
-  string phone_number = 2;
-  string gender = 3;
+  string email = 1 [(validator.field) = {regex: "^[A-Za-z0-9+_.-]+@(.+)$"}];
+  string phone_number = 2 [(validator.field) = {regex: "^[0-9]{11}$"}];
+  string gender = 3 [(validator.field) = {regex: "^(M|F)$"}];
   string first_name = 4;
   string last_name = 5;
-  string password = 6;
+  string password = 6 [(validator.field) = {length_gt: 8, length_lt: 32}];
 }
 
 message RegisterResponse {

@@ -39,3 +39,12 @@ func (storage *Storage) GetUserByEmail(email string) (*UserAccount, error) {
 	}
 	return &user, nil
 }
+
+func (storage *Storage) GetUserByPhoneNumber(phoneNumber string) (*UserAccount, error) {
+	user := UserAccount{PhoneNumber: phoneNumber}
+	storage.DB.Where(&user).First(&user)
+	if user.ID == 0 {
+		return nil, errors.New("user not found")
+	}
+	return &user, nil
+}

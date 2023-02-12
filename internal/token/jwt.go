@@ -2,6 +2,7 @@ package token
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/redis/go-redis/v9"
@@ -81,13 +82,21 @@ func (m *JWTManager) InvalidateToken(ctx context.Context, tokenString string) er
 	if !ok {
 		return errors.New("invalid token")
 	}
-	userId, _ := strconv.Atoi(claims["user_id"].(string))
+	userId, _ := strconv.Atoi(claims["userID"].(string))
+	var expiration time.Time
+	switch exp := claims["exp"].(type) {
+	case float64:
+		expiration = time.Unix(int64(exp), 0)
+	case json.Number:
+		v, _ := exp.Int64()
+		expiration = time.Unix(v, 0)
+	}
 	err = m.Storage.CreateUnauthorizedToken(&storage.UnauthorizedToken{
 		UserID:     uint(userId),
 		Token:      tokenString,
-		Expiration: claims["exp"].(time.Time),
+		Expiration: expiration,
 	})
-	m.RDB.SetEx(ctx, tokenString, "true", time.Until(claims["exp"].(time.Time)))
+	m.RDB.SetEx(ctx, tokenString, "true", time.Until(expiration))
 	if err != nil {
 		return err
 	}
