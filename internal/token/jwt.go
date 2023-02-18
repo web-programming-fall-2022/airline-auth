@@ -113,8 +113,14 @@ func (m *JWTManager) CheckUnauthorizedToken(ctx context.Context, tokenString str
 			return nil
 		}
 		m.RDB.SetEx(ctx, tokenString, "false", time.Minute*10)
-	}
-	if resp.Val() == "true" {
+	} else if resp.Err() != nil {
+		_, err := m.Storage.GetUnauthorizedToken(tokenString)
+		if err != nil {
+			m.RDB.SetEx(ctx, tokenString, "true", time.Minute*10)
+			return nil
+		}
+		m.RDB.SetEx(ctx, tokenString, "false", time.Minute*10)
+	} else if resp.Val() == "true" {
 		return nil
 	}
 	return errors.New("token is unauthorized")
