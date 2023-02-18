@@ -42,10 +42,6 @@ func (m *JWTManager) Generate(claims map[string]string, expiration time.Time) (s
 }
 
 func (m *JWTManager) Validate(ctx context.Context, tokenString string) (map[string]string, error) {
-	err := m.CheckUnauthorizedToken(ctx, tokenString)
-	if err != nil {
-		return nil, err
-	}
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		return m.secret, nil
 	})
@@ -55,6 +51,11 @@ func (m *JWTManager) Validate(ctx context.Context, tokenString string) (map[stri
 	if !token.Valid {
 		return nil, errors.New("invalid token")
 	}
+	err = m.CheckUnauthorizedToken(ctx, tokenString)
+	if err != nil {
+		return nil, errors.New("invalid token")
+	}
+
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
 		return nil, errors.New("invalid token")
@@ -96,7 +97,7 @@ func (m *JWTManager) InvalidateToken(ctx context.Context, tokenString string) er
 		Token:      tokenString,
 		Expiration: expiration,
 	})
-	m.RDB.SetEx(ctx, tokenString, "true", time.Until(expiration))
+	m.RDB.SetEx(ctx, tokenString, "false", time.Until(expiration))
 	if err != nil {
 		return err
 	}
@@ -105,7 +106,15 @@ func (m *JWTManager) InvalidateToken(ctx context.Context, tokenString string) er
 
 func (m *JWTManager) CheckUnauthorizedToken(ctx context.Context, tokenString string) error {
 	resp := m.RDB.Get(ctx, tokenString)
-	if resp.Err() != nil {
+	if resp.Err() == redis.Nil {
+		_, err := m.Storage.GetUnauthorizedToken(tokenString)
+		if err != nil {
+			m.RDB.SetEx(ctx, tokenString, "true", time.Minute*10)
+			return nil
+		}
+		m.RDB.SetEx(ctx, tokenString, "false", time.Minute*10)
+	}
+	if resp.Val() == "true" {
 		return nil
 	}
 	return errors.New("token is unauthorized")
